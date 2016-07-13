@@ -36,8 +36,8 @@ Requirements
 What it does
 ############
 
-SNS publish and Lambda invoke operations are traced at the moment.
+SNS publish, Lambda invoke and S3 upload operations are traced at the moment.
 
-The appropriate methods are monkey patched to log the name of the lambda function and the topic it's sending a message to / the name of the other lambda function being invoked.
+The appropriate methods are monkey-patched to log the name of the lambda function and what it's doing to DynamoDB.
 
-The logs are published to CloudWatch and are used to visualize the map of the lambdas and how they communicate (SNS, direct invocations etc) and what triggers different lambdas (SNS, S3 events etc).
+The entries in DynamoDB can then be used to visualize the map of the lambdas and how they communicate (SNS, direct invocations etc) and what triggers different lambdas (SNS, S3 events etc).
