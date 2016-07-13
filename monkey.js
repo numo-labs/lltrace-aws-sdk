@@ -5,11 +5,11 @@ function monkey(AWS, actionMap) {
   // wrap SNS:
   //
   var OriginalSNS = AWS.SNS;
-  AWS.SNS = function() {
+  AWS.SNS = function () {
     var sns = new OriginalSNS(arguments);
 
     var originalPublish = sns.publish;
-    sns.publish = function() {
+    sns.publish = function () {
       if (actionMap.sns) {
         actionMap.sns.apply(this, arguments);
       }
@@ -23,11 +23,11 @@ function monkey(AWS, actionMap) {
   // wrap Lambda:
   //
   var originalLambda = AWS.Lambda;
-  AWS.Lambda = function() {
+  AWS.Lambda = function () {
     var lambda = new originalLambda();
 
     var originalInvoke = lambda.invoke;
-    lambda.invoke = function() {
+    lambda.invoke = function () {
       if (actionMap.lambda) {
         actionMap.lambda.apply(this, arguments);
       }
@@ -37,30 +37,26 @@ function monkey(AWS, actionMap) {
     return lambda;
   };
 
+  //
+  // wrap S3:
+  //
+  var originalS3 = AWS.S3;
+  AWS.S3 = function () {
+    var s3 = new originalS3(); // TODO: pass arguments in
+
+    var originalUpload = s3.upload;
+    s3.upload = function () {
+      if (actionMap.s3) {
+        actionMap.s3.apply(this, arguments);
+      }
+      originalUpload.apply(this, arguments);
+    };
+    return s3;
+  };
+
+  AWS.S3.ManagedUpload = originalS3.ManagedUpload;
+
   return AWS;
 }
 
 module.exports = monkey;
-
-// -----------------------%-
-
-if (require.main) {
-  var sns = new AWS.SNS();
-  //console.log(sns);
-  sns.publish({}, function (err) {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log('All good');
-    }
-  });
-
-  var lambda = new AWS.Lambda();
-  lambda.invoke({}, function (err) {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log('All good');
-    }
-  });
-}
