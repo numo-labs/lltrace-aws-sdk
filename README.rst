@@ -23,6 +23,16 @@ And then at the top of the ``handler`` function:
 
 ``require('lltrace-aws-sdk').init(context.functionName);``
 
+All existing code making use of the ``aws`` will continue working normally.
+
+
+Requirements
+############
+
+- Create a DynamoDB table with the name ``lltracer``
+- Lambdas using this library need to be able to write to DynamoDB
+
+
 What it does
 ############
 
