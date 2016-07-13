@@ -24,7 +24,7 @@ function monkey(AWS, actionMap) {
   //
   var originalLambda = AWS.Lambda;
   AWS.Lambda = function () {
-    var lambda = new originalLambda();
+    var lambda = new originalLambda(arguments);
 
     var originalInvoke = lambda.invoke;
     lambda.invoke = function () {
@@ -42,7 +42,7 @@ function monkey(AWS, actionMap) {
   //
   var originalS3 = AWS.S3;
   AWS.S3 = function () {
-    var s3 = new originalS3(); // TODO: pass arguments in
+    var s3 = new originalS3(arguments);
 
     var originalUpload = s3.upload;
     s3.upload = function () {
