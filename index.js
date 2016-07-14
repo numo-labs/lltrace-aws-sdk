@@ -79,37 +79,3 @@ function s3Action () {
 function probable (n) {
   return Math.floor(Math.random() * 100) < n;
 }
-
-
-// -----------------------%-
-
-if (require.main) {
-  var AWS = new PatchedAWS();
-  var sns = new AWS.SNS();
-  //console.log(sns);
-  sns.publish({}, function (err) {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log('All good');
-    }
-  });
-
-  var lambda = new AWS.Lambda();
-  lambda.invoke({}, function (err) {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log('All good');
-    }
-  });
-
-  var s3 = new AWS.S3();
-  s3.upload({}, function (err) {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log('All good');
-    }
-  });
-}
