@@ -1,6 +1,6 @@
 {
   "name": "lltrace-aws-sdk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "AWS SDK with methods monkey-patched for tracing - part of lltrace",
   "main": "index.js",
   "scripts": {
