@@ -15,6 +15,7 @@ function PatchedAWS () {
     lambda: lambdaAction,
     s3: s3Action
   });
+  o.init = init;
   return o;
 };
 
