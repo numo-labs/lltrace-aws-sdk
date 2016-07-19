@@ -21,7 +21,7 @@ Do this:
 
 And then at the top of the ``handler`` function:
 
-``require('lltrace-aws-sdk').init(context.functionName);``
+``require('lltrace-aws-sdk').init(context.invokedFunctionArn);``
 
 All existing code making use of the ``aws`` object should continue working normally.
 
