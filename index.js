@@ -8,6 +8,7 @@ module.exports = {
 };
 
 var dynamo = new aws.DynamoDB();
+var logged = [];
 
 function PatchedAWS () {
   var o = monkey(aws, {
@@ -25,40 +26,58 @@ function init (functionArn) {
 
 function snsAction () {
   if (probable(10)) {
-    dynamo.putItem({
-      TableName: 'lltrace',
-      Item: {
-        Caller: { S: global.LLTRACE_FUNCTION_ARN },
-        Target: { S: arguments[0].TopicArn || arguments[0].TargetArn },
-        Type: { S: 'sns' }
-      }
-    }, function (err, data) {});
+    var target = arguments[0].TopicArn || arguments[0].TargetArn;
+    var key = format('%s-%s-%s', global.LLTRACE_FUNCTION_ARN, target, 'sns');
+    if (logged.indexOf(key) === -1) {
+      logged.push(key);
+
+      dynamo.putItem({
+        TableName: 'lltrace',
+        Item: {
+          Caller: { S: global.LLTRACE_FUNCTION_ARN },
+          Target: { S: target },
+          Type: { S: 'sns' }
+        }
+      }, function (err, data) {});
+    }
   }
 }
 
 function lambdaAction () {
   if (probable(10)) {
-    dynamo.putItem({
-      TableName: 'lltrace',
-      Item: {
-        Caller: { S: global.LLTRACE_FUNCTION_ARN },
-        Target: { S: arguments[0].FunctionName },
-        Type: { S: 'lambda' }
-      }
-    }, function (err, data) {});
+    var target = arguments[0].FunctionName;
+    var key = format('%s-%s-%s', global.LLTRACE_FUNCTION_ARN, target, 'lambda');
+    if (logged.indexOf(key) === -1) {
+      logged.push(key);
+
+      dynamo.putItem({
+        TableName: 'lltrace',
+        Item: {
+          Caller: { S: global.LLTRACE_FUNCTION_ARN },
+          Target: { S: target },
+          Type: { S: 'lambda' }
+        }
+      }, function (err, data) {});
+    }
   }
 }
 
 function s3Action () {
   if (probable(10)) {
-    dynamo.putItem({
-      TableName: 'lltrace',
-      Item: {
-        Caller: { S: global.LLTRACE_FUNCTION_ARN },
-        Target: { S: arguments[0].Bucket },
-        Type: { S: 's3' }
-      }
-    }, function (err, data) {});
+    var target = arguments[0].Bucket;
+    var key = format('%s-%s-%s', global.LLTRACE_FUNCTION_ARN, target, 's3');
+    if (logged.indexOf(key) === -1) {
+      logged.push(key);
+
+      dynamo.putItem({
+        TableName: 'lltrace',
+        Item: {
+          Caller: { S: global.LLTRACE_FUNCTION_ARN },
+          Target: { S: target },
+          Type: { S: 's3' }
+        }
+      }, function (err, data) {});
+    }
   }
 }
 
