@@ -19,60 +19,45 @@ function PatchedAWS () {
   return o;
 };
 
-function init (functionName) {
-  global.LLTRACE_FUNCTION_NAME = functionName;
+function init (functionArn) {
+  global.LLTRACE_FUNCTION_ARN = functionArn;
 }
 
 function snsAction () {
   if (probable(10)) {
-    var uid = format('%s-%s-%s',
-                     global.LLTRACE_FUNCTION_NAME,
-                     process.hrtime(),
-                     Math.ceil(Math.random() * 100));
     dynamo.putItem({
+      TableName: 'lltrace',
       Item: {
-        uid: {S: uid},
-        lambda: {S: global.LLTRACE_FUNCTION_NAME},
-        type: {S: 'sns'},
-        destination: {S: arguments[0].TopicArn} // FIXME: Could be TargetArn too
-      },
-      TableName: 'lltracer'
+        Caller: { S: global.LLTRACE_FUNCTION_ARN },
+        Target: { S: arguments[0].TopicArn || arguments[0].TargetArn },
+        Type: { S: 'sns' }
+      }
     }, function (err, data) {});
   }
 }
 
 function lambdaAction () {
   if (probable(10)) {
-    var uid = format('%s-%s-%s',
-                     global.LLTRACE_FUNCTION_NAME,
-                     process.hrtime(),
-                     Math.ceil(Math.random() * 100));
     dynamo.putItem({
-        Item: {
-            uid: {S: uid },
-            lambda: {S: global.LLTRACE_FUNCTION_NAME},
-            type: {S: 'lambda'},
-            destination: {S: arguments[0].FunctionName }
-        },
-        TableName: 'lltracer'
+      TableName: 'lltrace',
+      Item: {
+        Caller: { S: global.LLTRACE_FUNCTION_ARN },
+        Target: { S: arguments[0].FunctionName },
+        Type: { S: 'lambda' }
+      }
     }, function (err, data) {});
   }
 }
 
 function s3Action () {
   if (probable(10)) {
-    var uid = format('%s-%s-%s',
-                     global.LLTRACE_FUNCTION_NAME,
-                     process.hrtime(),
-                     Math.ceil(Math.random() * 100));
     dynamo.putItem({
-        Item: {
-            uid: {S: uid },
-            lambda: {S: global.LLTRACE_FUNCTION_NAME},
-            type: {S: 's3'},
-            destination: {S: arguments[0].Bucket }
-        },
-        TableName: 'lltracer'
+      TableName: 'lltrace',
+      Item: {
+        Caller: { S: global.LLTRACE_FUNCTION_ARN },
+        Target: { S: arguments[0].Bucket },
+        Type: { S: 's3' }
+      }
     }, function (err, data) {});
   }
 }
