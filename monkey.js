@@ -45,12 +45,31 @@ function monkey(AWS, actionMap) {
     var s3 = new originalS3(arguments);
 
     var originalUpload = s3.upload;
+    var originalGetObject = s3.getObject;
+    var originalPutObject = s3.putObject;
+
     s3.upload = function () {
       if (actionMap.s3) {
         actionMap.s3.apply(this, arguments);
       }
       originalUpload.apply(this, arguments);
     };
+
+    s3.getObject = function () {
+      if (actionMap.s3) {
+        actionMap.s3.apply(this, arguments);
+      }
+      originalGetObject.apply(this, arguments);
+    };
+
+
+    s3.putObject = function () {
+      if (actionMap.s3) {
+        actionMap.s3.apply(this, arguments);
+      }
+      originalPutObject.apply(this, arguments);
+    };
+
     return s3;
   };
 
