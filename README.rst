@@ -30,8 +30,11 @@ Requirements
 ############
 
 - Create a DynamoDB table with the name ``lltrace`` with Primary Key set to:
+
   1. Partition key ``Caller`` of type String
+  
   2. Sort key ``Target`` of type String
+  
 - Lambdas using this library need to be able to write to DynamoDB
 
 
