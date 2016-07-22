@@ -9,6 +9,8 @@
   "author": "Hassy Veldstra <h@veldstra.org>",
   "license": "MPL-2.0",
   "dependencies": {
+  },
+  "devDependencies": {
     "aws-sdk": "2.4.7",
     "tape": "4.6.0"
   }
