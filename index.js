@@ -48,7 +48,8 @@ function snsAction () {
 
 function lambdaAction () {
   if (probable(TRACE_PROBABILITY)) {
-    var target = arguments[0].FunctionName;
+    var qualifier = arguments[0].Qualifier ? ':' + arguments[0].Qualifier : '';
+    var target = arguments[0].FunctionName + qualifier;
     var key = format('%s-%s-%s', global.LLTRACE_FUNCTION_ARN, target, 'lambda');
     if (logged.indexOf(key) === -1) {
       logged.push(key);
