@@ -9,6 +9,8 @@ module.exports = {
 };
 
 var dynamo = new aws.DynamoDB();
+var s3 = new aws.S3();
+
 var logged = [];
 
 var TRACE_PROBABILITY = process.env.TRACE_PROBABILITY || 10;
@@ -25,78 +27,72 @@ function PatchedAWS () {
 
 function init (functionArn) {
   global.LLTRACE_FUNCTION_ARN = functionArn;
+  global.LLTRACE_REGION = functionArn.split(':')[3];
+  global.LLTRACE_ACCOUNT = functionArn.split(':')[4];
+}
+
+function trace(target, type, caller) {
+  if (!probable(TRACE_PROBABILITY)) {
+    return;
+  }
+
+  var key = format('%s-%s-%s', global.LLTRACE_FUNCTION_ARN, target, type);
+
+  if (logged.indexOf(key) > -1) {
+    return;
+  }
+
+  logged.push(key);
+
+  caller = caller || global.LLTRACE_FUNCTION_ARN || 'unknown';
+
+  var item = {
+    Caller: caller || global.LLTRACE_FUNCTION_ARN,
+    Target: target,
+    Type: type,
+    Timestamp: Date.now()
+  };
+
+  s3.putObject({
+    Bucket: format('lltrace-%s', global.LLTRACE_ACCOUNT),
+    Key: format('%s/%s', global.LLTRACE_REGION, target),
+    Body: JSON.stringify(item, null, 4),
+    ContentType: 'application/json'
+  }, function (err, data) {});
+
+  dynamo.putItem({
+    TableName: 'lltrace',
+    Item: {
+      Caller: { S: caller },
+      Target: { S: target },
+      Type: { S: type },
+      Timestamp: { N: String(item.Timestamp) }
+    }
+  }, function (err, data) {});
 }
 
 function snsAction () {
-  if (probable(TRACE_PROBABILITY)) {
-    var target = arguments[0].TopicArn || arguments[0].TargetArn;
-    var key = format('%s-%s-%s', global.LLTRACE_FUNCTION_ARN, target, 'sns');
-    if (logged.indexOf(key) === -1) {
-      logged.push(key);
-
-      dynamo.putItem({
-        TableName: 'lltrace',
-        Item: {
-          Caller: { S: global.LLTRACE_FUNCTION_ARN },
-          Target: { S: target },
-          Type: { S: 'sns' }
-        }
-      }, function (err, data) {});
-    }
-  }
+  var target = arguments[0].TopicArn || arguments[0].TargetArn;
+  trace(target, 'sns');
 }
 
 function lambdaAction () {
-  if (probable(TRACE_PROBABILITY)) {
-    var qualifier = arguments[0].Qualifier ? ':' + arguments[0].Qualifier : '';
-    var target = arguments[0].FunctionName + qualifier;
-    var key = format('%s-%s-%s', global.LLTRACE_FUNCTION_ARN, target, 'lambda');
-    if (logged.indexOf(key) === -1) {
-      logged.push(key);
-
-      dynamo.putItem({
-        TableName: 'lltrace',
-        Item: {
-          Caller: { S: global.LLTRACE_FUNCTION_ARN },
-          Target: { S: target },
-          Type: { S: 'lambda' }
-        }
-      }, function (err, data) {});
-    }
-  }
+  var qualifier = arguments[0].Qualifier ? ':' + arguments[0].Qualifier : '';
+  var target = arguments[0].FunctionName + qualifier;
+  trace(target, 'lambda');
 }
 
 function s3Action () {
-  if (probable(TRACE_PROBABILITY)) {
-    var target = arguments[0].Bucket;
-    var key = format('%s-%s-%s', global.LLTRACE_FUNCTION_ARN, target, 's3');
-    if (logged.indexOf(key) === -1) {
-      logged.push(key);
-
-      dynamo.putItem({
-        TableName: 'lltrace',
-        Item: {
-          Caller: { S: global.LLTRACE_FUNCTION_ARN },
-          Target: { S: target },
-          Type: { S: 's3' }
-        }
-      }, function (err, data) {});
-    }
-  }
+  var target = arguments[0].Bucket;
+  trace(target, 's3');
 }
 
 function traceCustom (opts) {
   opts = opts || {};
-  if (probable(TRACE_PROBABILITY)) {
-    dynamo.putItem({
-      TableName: 'lltrace',
-      Item: {
-        Caller: { S: opts.caller || global.LLTRACE_FUNCTION_ARN || 'unknown' },
-        Target: { S: opts.target },
-        Type: { S: opts.type || 'custom' }
-      }
-    }, function (err, data) {});
-  }
+  var caller = opts.caller || global.LLTRACE_FUNCTION_ARN || 'unknown';
+  var target = opts.target;
+  var type = opts.type || 'unknown';
+  trace(target, type, caller);
 }
 
 function probable (n) {
