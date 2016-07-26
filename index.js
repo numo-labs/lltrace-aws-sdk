@@ -57,7 +57,8 @@ function trace(target, type, caller) {
     Bucket: format('lltrace-%s', global.LLTRACE_ACCOUNT),
     Key: format('%s/%s', global.LLTRACE_REGION, target),
     Body: JSON.stringify(item, null, 4),
-    ContentType: 'application/json'
+    ContentType: 'application/json',
+    ACL: 'authenticated-read'
   }, function (err, data) {});
 
   dynamo.putItem({
