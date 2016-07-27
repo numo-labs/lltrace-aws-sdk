@@ -55,7 +55,7 @@ function trace(target, type, caller) {
 
   s3.putObject({
     Bucket: format('lltrace-%s', global.LLTRACE_ACCOUNT),
-    Key: format('%s/%s', global.LLTRACE_REGION, target),
+    Key: format('%s/%s-%s.json', global.LLTRACE_REGION, caller, target),
     Body: JSON.stringify(item, null, 4),
     ContentType: 'application/json',
     ACL: 'authenticated-read'
