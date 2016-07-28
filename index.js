@@ -53,13 +53,17 @@ function trace(target, type, caller) {
     Timestamp: Date.now()
   };
 
-  s3.putObject({
-    Bucket: format('lltrace-%s', global.LLTRACE_ACCOUNT),
-    Key: format('%s/%s-%s.json', global.LLTRACE_REGION, caller, target),
-    Body: JSON.stringify(item, null, 4),
-    ContentType: 'application/json',
-    ACL: 'authenticated-read'
-  }, function (err, data) {});
+  if (global.LLTRACE_ACCOUNT && global.LLTRACE_REGION) {
+    s3.putObject({
+      Bucket: format('lltrace-%s', global.LLTRACE_ACCOUNT),
+      Key: format('%s/%s-%s.json', global.LLTRACE_REGION, caller, target),
+      Body: JSON.stringify(item, null, 4),
+      ContentType: 'application/json',
+      ACL: 'authenticated-read'
+    }, function (err, data) {});
+  } else {
+    console.error('lltrace-aws-sdk was not initialized properly - make sure to call the init() method');
+  }
 
   dynamo.putItem({
     TableName: 'lltrace',
