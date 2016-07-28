@@ -8,9 +8,6 @@ module.exports = {
   traceCustom: traceCustom
 };
 
-var dynamo = new aws.DynamoDB();
-var s3 = new aws.S3();
-
 var logged = [];
 
 var TRACE_PROBABILITY = process.env.TRACE_PROBABILITY || 10;
@@ -52,6 +49,9 @@ function trace(target, type, caller) {
     Type: type,
     Timestamp: Date.now()
   };
+
+  var dynamo = new aws.DynamoDB();
+  var s3 = new aws.S3();
 
   if (global.LLTRACE_ACCOUNT && global.LLTRACE_REGION) {
     s3.putObject({
